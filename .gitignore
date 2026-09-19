@@ -4,6 +4,5 @@ __pycache__/
 *.egg-info/
 .ipynb_checkpoints/
 
-# Large local datasets and replication-level simulation output.
-data/
-result/efficiency_replications.csv
+# The original large dataset is reconstructed from its Git LFS parts.
+data/Replogle-E-k562_within_batch_effects.h5ad
