@@ -1,3 +1,0 @@
-data/*.h5ad filter=lfs diff=lfs merge=lfs -text
-data/*.h5ad.part-* filter=lfs diff=lfs merge=lfs -text
-result/efficiency_replications.csv filter=lfs diff=lfs merge=lfs -text
