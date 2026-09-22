@@ -2,6 +2,9 @@ import numpy as np
 from scipy.optimize import brentq
 from scipy.stats import norm
 
+from ucm.projected import projected_covariance, projected_scores, sample_projections
+from ucm.risk import box_bias_bound, sensitivity
+
 
 def gmm_variance(X, y, H, beta_hat, M=None, scores=None):
     """Estimate asymptotic variance V(M)."""
@@ -51,3 +54,21 @@ def robust_ci(beta_hat, sigma, bias_bound, n, alpha=0.05):
     cv = robust_critical_value(bias_bound / sigma, alpha)
     half_width = cv * sigma / np.sqrt(n)
     return beta_hat - half_width, beta_hat + half_width
+
+
+def robust_gmm_ci(X, y, Z, W, beta_hat, M, bounds, h_iv=None, h_sv=None,
+                  alpha=0.05, return_details=False):
+    """Sample-based robust CI for a scalar combined estimator (Remark 9)."""
+    if h_iv is None or h_sv is None:
+        h_iv, h_sv = sample_projections(X, Z, W)
+    H = np.column_stack((h_iv, h_sv))
+    G = H.T @ np.asarray(X).reshape(len(y), -1) / len(y)
+    if G.shape != (2, 1):
+        raise ValueError("robust_gmm_ci requires one coefficient and two moments.")
+    scores = projected_scores(X, y, Z, W, beta_hat, h_iv, h_sv)
+    Omega = projected_covariance(scores)
+    K = sensitivity(G, M).reshape(-1)
+    sigma = np.sqrt(float(K @ Omega @ K))
+    bias_bound = box_bias_bound(K, bounds)
+    ci = robust_ci(float(np.asarray(beta_hat).item()), sigma, bias_bound, len(y), alpha)
+    return (*ci, sigma, bias_bound) if return_details else ci

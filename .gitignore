@@ -6,4 +6,5 @@ __pycache__/
 
 # Large local datasets and replication-level simulation output.
 data/
-result/efficiency_replications.csv
+results/efficiency/efficiency_replications.csv
+results/local_misspec/local_misspec_replications.csv

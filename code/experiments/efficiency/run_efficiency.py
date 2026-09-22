@@ -1,11 +1,15 @@
 """Monte Carlo experiment for Section 5.1 of the paper."""
 
 import argparse
+import csv
 from pathlib import Path
+import shutil
 import sys
+from tempfile import TemporaryDirectory
 
 import numpy as np
 import pandas as pd
+from joblib import Parallel, delayed, parallel_config
 from scipy.stats import norm
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
@@ -20,6 +24,12 @@ from ucm.weighting import oracle_projected_weight
 A_VALUES = (1.0, 2.0, 3.0)
 N_VALUES = tuple(range(200, 2001, 200))
 DEFAULT_SEED = 20260919
+DEFAULT_N_JOBS = 8
+RAW_FIELDS = (
+    "seed", "draw_seed", "scenario", "a", "n", "replication", "method",
+    "beta", "beta_hat", "se", "ci_low", "ci_high", "ci_length", "covered",
+    "p_value_h0_beta_0", "reject_h0_beta_0",
+)
 
 
 def estimate(data):
@@ -63,34 +73,67 @@ def estimate(data):
     return results
 
 
-def run(replications=1000, seed=DEFAULT_SEED):
-    rng = np.random.default_rng(seed)
-    rows = []
-    scenarios = (("estimation", 1.0), ("size", 0.0), ("power_1", None), ("power_2", None))
+def run_configuration(index, a, n, scenario, fixed_beta, draw_seeds, seed, part_path):
+    """Run one design configuration and write its replications in order."""
+    beta = fixed_beta if fixed_beta is not None else int(scenario[-1]) / np.sqrt(n)
+    with part_path.open("w", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=RAW_FIELDS)
+        for replication, draw_seed in enumerate(draw_seeds):
+            draw_seed = int(draw_seed)
+            data = generate_data(n=n, a=a, c=1.0, beta=beta, seed=draw_seed)
+            data["a"] = a
+            for method, (beta_hat, se, ci_low, ci_high, p_value) in estimate(data).items():
+                writer.writerow({
+                    "seed": seed, "draw_seed": draw_seed,
+                    "scenario": scenario, "a": a, "n": n,
+                    "replication": replication, "method": method,
+                    "beta": beta, "beta_hat": beta_hat, "se": se,
+                    "ci_low": ci_low, "ci_high": ci_high,
+                    "ci_length": ci_high - ci_low,
+                    "covered": ci_low <= beta <= ci_high,
+                    "p_value_h0_beta_0": p_value,
+                    "reject_h0_beta_0": p_value < 0.05,
+                })
+    return index, a, n, scenario
 
+
+def run(replications=1000, seed=DEFAULT_SEED, n_jobs=DEFAULT_N_JOBS):
+    rng = np.random.default_rng(seed)
+    scenarios = (("estimation", 1.0), ("size", 0.0), ("power_1", None), ("power_2", None))
+    configurations = []
     for a in A_VALUES:
         for n in N_VALUES:
             for scenario, fixed_beta in scenarios:
-                beta = fixed_beta if fixed_beta is not None else int(scenario[-1]) / np.sqrt(n)
-                for replication in range(replications):
-                    draw_seed = int(rng.integers(0, 2**63))
-                    data = generate_data(n=n, a=a, c=1.0, beta=beta, seed=draw_seed)
-                    data["a"] = a
-                    for method, (beta_hat, se, ci_low, ci_high, p_value) in estimate(data).items():
-                        rows.append({
-                            "seed": seed, "draw_seed": draw_seed,
-                            "scenario": scenario, "a": a, "n": n,
-                            "replication": replication, "method": method,
-                            "beta": beta, "beta_hat": beta_hat, "se": se,
-                            "ci_low": ci_low, "ci_high": ci_high,
-                            "ci_length": ci_high - ci_low,
-                            "covered": ci_low <= beta <= ci_high,
-                            "p_value_h0_beta_0": p_value,
-                            "reject_h0_beta_0": p_value < 0.05,
-                        })
+                draw_seeds = rng.integers(0, 2**63, size=replications, dtype=np.int64)
+                configurations.append((a, n, scenario, fixed_beta, draw_seeds))
+
+    output_dir = Path(__file__).resolve().parents[3] / "results" / "efficiency"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    raw_path = output_dir / "efficiency_replications.csv"
+    summary_path = output_dir / "efficiency_summary.csv"
+
+    with TemporaryDirectory(prefix="efficiency_parts_", dir=output_dir) as temp_dir:
+        temp_dir = Path(temp_dir)
+        tasks = [
+            delayed(run_configuration)(
+                index, a, n, scenario, fixed_beta, draw_seeds, seed,
+                temp_dir / f"part_{index:04d}.csv",
+            )
+            for index, (a, n, scenario, fixed_beta, draw_seeds)
+            in enumerate(configurations)
+        ]
+        with parallel_config(backend="loky", inner_max_num_threads=1):
+            completed = Parallel(n_jobs=n_jobs, verbose=10)(tasks)
+
+        with raw_path.open("w", newline="") as output_file:
+            writer = csv.DictWriter(output_file, fieldnames=RAW_FIELDS)
+            writer.writeheader()
+            for index, a, n, scenario in sorted(completed):
+                with (temp_dir / f"part_{index:04d}.csv").open() as part_file:
+                    shutil.copyfileobj(part_file, output_file)
                 print(f"Finished a={a:.4f}, n={n}, scenario={scenario}", flush=True)
 
-    raw = pd.DataFrame(rows)
+    raw = pd.read_csv(raw_path)
     grouped = raw.groupby(["scenario", "a", "n", "method"], sort=False)
     summary = grouped.agg(
         beta=("beta", "first"),
@@ -122,10 +165,6 @@ def run(replications=1000, seed=DEFAULT_SEED):
         2 * norm.ppf(0.975) * np.sqrt(summary["theoretical_finite_n_variance"])
     )
 
-    output_dir = Path(__file__).resolve().parents[3] / "result"
-    output_dir.mkdir(exist_ok=True)
-    raw_path = output_dir / "efficiency_replications.csv"
-    summary_path = output_dir / "efficiency_summary.csv"
     raw.to_csv(raw_path, index=False)
     summary.to_csv(summary_path, index=False)
     print(f"Saved {raw_path}")
@@ -136,10 +175,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--replications", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
+    parser.add_argument("--n-jobs", type=int, default=DEFAULT_N_JOBS)
     args = parser.parse_args()
     if args.replications < 2:
         parser.error("--replications must be at least 2")
-    run(args.replications, args.seed)
+    if args.n_jobs == 0:
+        parser.error("--n-jobs cannot be zero")
+    run(args.replications, args.seed, args.n_jobs)
 
 
 if __name__ == "__main__":

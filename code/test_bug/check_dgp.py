@@ -75,9 +75,9 @@ def check_dgp():
     record("local_misspecification", "sqrt_n_sv_moment_shift", np.sqrt(n) * np.mean(h_sv * (misspec["y"] - y)), tau_w)
     record("local_misspecification", "max_abs_outcome_change_error", np.max(np.abs(misspec["y"] - y - expected_difference)), 0.0)
 
-    result_dir = Path(__file__).resolve().parents[2] / "result"
+    result_dir = Path(__file__).resolve().parents[2] / "results" / "dgp_diagnostics"
     result_dir.mkdir(exist_ok=True)
-    output_path = result_dir / "check_dgp.csv"
+    output_path = result_dir / "dgp_diagnostics.csv"
 
     with output_path.open("w", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=rows[0])
