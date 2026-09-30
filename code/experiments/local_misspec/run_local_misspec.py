@@ -18,22 +18,21 @@ from ucm.estimators import combined, iv, sv
 from ucm.inference import robust_ci, wald_ci
 from ucm.projected import projected_covariance, projected_scores, sample_projections
 from ucm.risk import (
-    DEFAULT_IDENTIFICATION_FLOOR, box_bias_bound, box_risk, optimal_box_weight,
-    sensitivity,
+    ellipsoid_bias_bound, ellipsoid_risk, optimal_ellipsoid_sensitivity, sensitivity,
+    weight_from_sensitivity,
 )
 
 
 A = 2.0
 BETA = 1.0
-N_VALUES = tuple(range(200, 2001, 200))
+N_VALUES = (200, 600, 1000, 1400, 1800)
 KAPPA_VALUES = (0.0, 0.5, 1.0)
 REGIMES = ("iv", "sv", "both")
-METHODS = ("iv", "sv", "equal", "local_risk")
+METHODS = ("iv", "sv", "equal", "local_risk", "ols_unadjusted")
 DEFAULT_SEED = 20260920
-IDENTIFICATION_FLOOR = DEFAULT_IDENTIFICATION_FLOOR
 DEFAULT_N_JOBS = 8
 RAW_FIELDS = (
-    "seed", "identification_floor", "draw_seed", "regime", "kappa", "n",
+    "seed", "draw_seed", "regime", "kappa", "n",
     "replication", "tau_z", "tau_w", "method", "beta_hat", "sigma",
     "iv_share", "bias_bound", "squared_error", "wald_covered", "wald_length",
     "robust_covered", "robust_length",
@@ -46,19 +45,20 @@ TOTAL_FIELDS = (
 
 
 def design_points(kappas):
-    """Return prespecified symmetric boxes and all of their vertices."""
+    """Return Appendix-F ellipsoids and boundary evaluation points."""
     for kappa in kappas:
         if kappa == 0:
             yield "none", kappa, (0.0, 0.0), ((0.0, 0.0),)
             continue
         yield "iv", kappa, (kappa, 0.0), ((-kappa, 0.0), (kappa, 0.0))
         yield "sv", kappa, (0.0, kappa), ((0.0, -kappa), (0.0, kappa))
-        yield "both", kappa, (kappa, kappa), (
-            (-kappa, -kappa), (-kappa, kappa), (kappa, -kappa), (kappa, kappa)
+        yield "both", kappa, (kappa, kappa), tuple(
+            (kappa * np.cos(angle), kappa * np.sin(angle))
+            for angle in np.linspace(0.0, 2 * np.pi, 16, endpoint=False)
         )
 
 
-def estimate(data, y, h_iv, h_sv, bounds):
+def estimate(data, y, h_iv, h_sv, radii):
     """Estimate equal-weight and sample-optimal local-risk GMM."""
     x, z, w = data["x"], data["z"], data["w"]
     n = len(y)
@@ -68,12 +68,14 @@ def estimate(data, y, h_iv, h_sv, bounds):
     first_scores = projected_scores(x, y, z, w, beta0, h_iv, h_sv)
     Omega0 = projected_covariance(first_scores)
     equal_weight = np.eye(2)
-    risk_weight = optimal_box_weight(G, Omega0, bounds, IDENTIFICATION_FLOOR)
+    risk_K = optimal_ellipsoid_sensitivity(G, Omega0, radii)
+    risk_weight = weight_from_sensitivity(G, risk_K)
+    risk_beta = risk_K @ (H.T @ y / n)
     methods = {
         "iv": (h_iv, None, iv(x, y, h_iv)),
         "sv": (h_sv, None, sv(x, y, h_sv)),
         "equal": (H, equal_weight, combined(x, y, h_iv, h_sv, equal_weight)),
-        "local_risk": (H, risk_weight, combined(x, y, h_iv, h_sv, risk_weight)),
+        "local_risk": (H, risk_weight, risk_beta),
     }
 
     results = {}
@@ -90,17 +92,19 @@ def estimate(data, y, h_iv, h_sv, bounds):
         K = sensitivity(jacobian, M).reshape(-1)
         sigma = np.sqrt(float(K @ Omega @ K))
         wald_low, wald_high = wald_ci(beta_hat, sigma / np.sqrt(n))
-        if method in ("equal", "local_risk"):
-            bias_bound = box_bias_bound(K, bounds)
-            robust_low, robust_high = robust_ci(beta_hat, sigma, bias_bound, n)
-            robust_covered = robust_low <= BETA <= robust_high
-            robust_length = robust_high - robust_low
-            iv_share = K[0] * G[0, 0]
+        if method == "iv":
+            channel_radii = (radii[0],)
+            iv_share = 1.0
+        elif method == "sv":
+            channel_radii = (radii[1],)
+            iv_share = 0.0
         else:
-            bias_bound = np.nan
-            robust_covered = np.nan
-            robust_length = np.nan
-            iv_share = 1.0 if method == "iv" else 0.0
+            channel_radii = radii
+            iv_share = K[0] * G[0, 0]
+        bias_bound = ellipsoid_bias_bound(K, channel_radii)
+        robust_low, robust_high = robust_ci(beta_hat, sigma, bias_bound, n)
+        robust_covered = robust_low <= BETA <= robust_high
+        robust_length = robust_high - robust_low
         results[method] = {
             "beta_hat": beta_hat,
             "sigma": sigma,
@@ -112,12 +116,30 @@ def estimate(data, y, h_iv, h_sv, bounds):
             "robust_covered": robust_covered,
             "robust_length": robust_length,
         }
+    # Deliberately unadjusted OLS: its fixed confounding bias is not covered by
+    # the local moment-deviation ellipsoid used for IV/SV/GMM robust intervals.
+    x_centered = x - x.mean()
+    y_centered = y - y.mean()
+    ols_beta = float(x_centered @ y_centered / (x_centered @ x_centered))
+    ols_residual = y_centered - ols_beta * x_centered
+    ols_se = float(np.sqrt(np.sum((x_centered * ols_residual) ** 2)) / np.sum(x_centered**2))
+    ols_low, ols_high = wald_ci(ols_beta, ols_se)
+    results["ols_unadjusted"] = {
+        "beta_hat": ols_beta, "sigma": ols_se * np.sqrt(n),
+        "iv_share": np.nan, "bias_bound": np.nan,
+        "squared_error": (ols_beta - BETA) ** 2,
+        "wald_covered": ols_low <= BETA <= ols_high,
+        "wald_length": ols_high - ols_low,
+        "robust_covered": np.nan, "robust_length": np.nan,
+    }
     return results
 
 
-def population_risk(method, bounds):
+def population_risk(method, radii):
     G = np.array([[A**2 / 2], [1.0]])
     Omega = np.diag([A**2, 1.0])
+    if method == "ols_unadjusted":
+        return np.nan  # fixed bias makes n*MSE diverge
     if method == "iv":
         M = np.diag([1.0, 0.0])
     elif method == "sv":
@@ -125,12 +147,13 @@ def population_risk(method, bounds):
     elif method == "equal":
         M = np.eye(2)
     else:
-        M = optimal_box_weight(G, Omega, bounds, IDENTIFICATION_FLOOR)
-    return box_risk(G, M, Omega, bounds)
+        K = optimal_ellipsoid_sensitivity(G, Omega, radii)
+        M = weight_from_sensitivity(G, K)
+    return ellipsoid_risk(G, M, Omega, radii)
 
 
 def run_configuration(
-    index, n, regime, kappa, bounds, vertices, draw_seeds, seed, part_path
+    index, n, regime, kappa, radii, evaluation_points, draw_seeds, seed, part_path
 ):
     """Run one local-misspecification design configuration."""
     totals = {}
@@ -140,15 +163,14 @@ def run_configuration(
             draw_seed = int(draw_seed)
             base = generate_data(n=n, a=A, c=1.0, beta=BETA, seed=draw_seed)
             h_iv, h_sv = sample_projections(base["x"], base["z"], base["w"])
-            for tau_z, tau_w in vertices:
+            for tau_z, tau_w in evaluation_points:
                 y = base["y"] + (
                     tau_z * base["z"] / (A * np.sqrt(n))
                     + tau_w * base["h_sv"] / np.sqrt(n)
                 )
-                for method, result in estimate(base, y, h_iv, h_sv, bounds).items():
+                for method, result in estimate(base, y, h_iv, h_sv, radii).items():
                     writer.writerow({
                         "seed": seed,
-                        "identification_floor": IDENTIFICATION_FLOOR,
                         "draw_seed": draw_seed, "regime": regime,
                         "kappa": kappa, "n": n, "replication": replication,
                         "tau_z": tau_z, "tau_w": tau_w, "method": method,
@@ -164,8 +186,9 @@ def run_configuration(
                     total["squared_error_sq"] += result["squared_error"] ** 2
                     total["wald_covered"] += result["wald_covered"]
                     total["wald_length"] += result["wald_length"]
-                    total["iv_share"] += result["iv_share"]
-                    if method in ("equal", "local_risk"):
+                    if method != "ols_unadjusted":
+                        total["iv_share"] += result["iv_share"]
+                    if method != "ols_unadjusted":
                         total["robust_covered"] += result["robust_covered"]
                         total["robust_length"] += result["robust_length"]
     return index, n, regime, kappa, totals
@@ -178,9 +201,9 @@ def run(
     rng = np.random.default_rng(seed)
     configurations = []
     for n in n_values:
-        for regime, kappa, bounds, vertices in design_points(kappas):
+        for regime, kappa, radii, evaluation_points in design_points(kappas):
             draw_seeds = rng.integers(0, 2**63, size=replications, dtype=np.int64)
-            configurations.append((n, regime, kappa, bounds, vertices, draw_seeds))
+            configurations.append((n, regime, kappa, radii, evaluation_points, draw_seeds))
 
     output_dir = Path(__file__).resolve().parents[3] / "results" / "local_misspec"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -193,10 +216,10 @@ def run(
         temp_dir = Path(temp_dir)
         tasks = [
             delayed(run_configuration)(
-                index, n, regime, kappa, bounds, vertices, draw_seeds, seed,
+                index, n, regime, kappa, radii, evaluation_points, draw_seeds, seed,
                 temp_dir / f"part_{index:04d}.csv",
             )
-            for index, (n, regime, kappa, bounds, vertices, draw_seeds)
+            for index, (n, regime, kappa, radii, evaluation_points, draw_seeds)
             in enumerate(configurations)
         ]
         with parallel_config(backend="loky", inner_max_num_threads=1):
@@ -222,23 +245,18 @@ def run(
         )
         rows.append({
             "regime": regime, "kappa": kappa, "n": n,
-            "identification_floor": IDENTIFICATION_FLOOR, "tau_z": tau_z, "tau_w": tau_w, "method": method,
+            "tau_z": tau_z, "tau_w": tau_w, "method": method,
             "replications": replications, "bias": bias,
             "scaled_squared_bias": n * bias**2,
             "scaled_variance": n * variance,
+            "mse": mean_squared_error,
             "scaled_mse": n * mean_squared_error,
             "scaled_mse_mc_se": n * np.sqrt(squared_error_variance / replications),
             "wald_coverage": total["wald_covered"] / replications,
             "mean_wald_length": total["wald_length"] / replications,
-            "robust_coverage": (
-                total["robust_covered"] / replications
-                if method in ("equal", "local_risk") else np.nan
-            ),
-            "mean_robust_length": (
-                total["robust_length"] / replications
-                if method in ("equal", "local_risk") else np.nan
-            ),
-            "mean_iv_share": total["iv_share"] / replications,
+            "robust_coverage": total["robust_covered"] / replications if method != "ols_unadjusted" else np.nan,
+            "mean_robust_length": total["robust_length"] / replications if method != "ols_unadjusted" else np.nan,
+            "mean_iv_share": total["iv_share"] / replications if method != "ols_unadjusted" else np.nan,
         })
     corners = pd.DataFrame(rows)
     corners.to_csv(corner_path, index=False)
@@ -248,18 +266,18 @@ def run(
         ["regime", "kappa", "n", "method"], sort=False
     ):
         worst = frame.loc[frame["scaled_mse"].idxmax()]
-        bounds = (kappa if regime in ("iv", "both") else 0.0,
-                  kappa if regime in ("sv", "both") else 0.0)
+        radii = (kappa if regime in ("iv", "both") else 0.0,
+                 kappa if regime in ("sv", "both") else 0.0)
         worst_rows.append({
             "regime": regime, "kappa": kappa, "n": n, "method": method,
-            "identification_floor": IDENTIFICATION_FLOOR,
             "replications": replications,
             "worst_tau_z": worst["tau_z"], "worst_tau_w": worst["tau_w"],
+            "worst_mse": worst["mse"],
             "worst_scaled_mse": worst["scaled_mse"],
             "worst_scaled_mse_mc_se": worst["scaled_mse_mc_se"],
             "worst_scaled_squared_bias": worst["scaled_squared_bias"],
             "worst_scaled_variance": worst["scaled_variance"],
-            "theoretical_worst_risk": population_risk(method, bounds),
+            "theoretical_worst_risk": population_risk(method, radii),
             "min_wald_coverage": frame["wald_coverage"].min(),
             "mean_wald_length": frame["mean_wald_length"].mean(),
             "min_robust_coverage": frame["robust_coverage"].min(),

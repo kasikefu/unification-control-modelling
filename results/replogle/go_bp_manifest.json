@@ -1,0 +1,18 @@
+{
+  "gaf_url": "https://current.geneontology.org/annotations/gaf/HUMAN-uniprot.gaf.gz",
+  "obo_url": "https://current.geneontology.org/ontology/go-basic.obo",
+  "gaf_sha256": "a0afba19dfb1f8fa996bc1bdcd61fd0c9bd4cf0d2bf2509d09ac86993c0e70a2",
+  "obo_sha256": "b08d45b268b8c24ccb2513dbbbc7d4df9f6521c099b413f79eb31e06e0fa3bcc",
+  "gaf_header": [
+    "!gaf-version: 2.2",
+    "!generated-by: UniProt",
+    "!date-generated: 2026-07-28 19:42",
+    "!go-version: http://purl.obolibrary.org/obo/go/releases/2026-07-26/extensions/go-plus.ofn"
+  ],
+  "alpha": 0.05,
+  "min_term_size": 2,
+  "n_tested_outcome_genes": 2000,
+  "n_genes_with_direct_bp_annotation": 1790,
+  "n_tested_bp_terms": 4795,
+  "annotation_policy": "human GAF, aspect P, exclude NOT; propagate is_a and part_of; background=all tested outcomes"
+}

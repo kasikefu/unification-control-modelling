@@ -3,7 +3,7 @@ import numpy as np
 from ucm.projected import (
     projected_covariance, projected_scores, projected_weight, sample_projections,
 )
-from ucm.risk import DEFAULT_IDENTIFICATION_FLOOR, optimal_box_weight
+from ucm.risk import optimal_ellipsoid_sensitivity, weight_from_sensitivity
 
 
 def gmm(X, y, H, M=None):
@@ -52,10 +52,10 @@ def efficient_gmm(X, y, Z, W, h_iv=None, h_sv=None, return_weight=False, channel
 
 
 def local_risk_gmm(
-    X, y, Z, W, bounds, h_iv=None, h_sv=None, return_weight=False,
-    identification_floor=DEFAULT_IDENTIFICATION_FLOOR,
+    X, y, Z, W, radii, h_iv=None, h_sv=None, return_weight=False,
+    return_sensitivity=False, rho=1.0,
 ):
-    """Feasible two-step local-risk GMM for two scalar projected moments."""
+    """Feasible risk-optimal projected GMM from Appendix F."""
     if h_iv is None or h_sv is None:
         h_iv, h_sv = sample_projections(X, Z, W)
     H = np.column_stack((h_iv, h_sv))
@@ -63,6 +63,14 @@ def local_risk_gmm(
     scores = projected_scores(X, y, Z, W, beta0, h_iv, h_sv)
     Omega = projected_covariance(scores)
     G = H.T @ np.asarray(X).reshape(len(y), -1) / len(y)
-    M = optimal_box_weight(G, Omega, bounds, identification_floor)
-    beta_hat = gmm(X, y, H, M)
-    return (beta_hat, M) if return_weight else beta_hat
+    K = optimal_ellipsoid_sensitivity(G, Omega, radii)
+    M = weight_from_sensitivity(G, K, rho)
+    stacked_outcome_moment = H.T @ np.asarray(y) / len(y)
+    beta_hat = K @ stacked_outcome_moment
+    if return_weight and return_sensitivity:
+        return beta_hat, M, K
+    if return_weight:
+        return beta_hat, M
+    if return_sensitivity:
+        return beta_hat, K
+    return beta_hat

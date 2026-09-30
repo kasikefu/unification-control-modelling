@@ -8,3 +8,8 @@ __pycache__/
 data/
 results/efficiency/efficiency_replications.csv
 results/local_misspec/local_misspec_replications.csv
+
+# Regenerable pair/term-level Replogle outputs exceed GitHub's 100 MB limit.
+results/replogle/iv_sv_gmm_results.csv.gz
+results/replogle/go_bp_enrichment.csv.gz
+results/replogle/wald_vs_local_pair_comparison.csv.gz

@@ -1,0 +1,8 @@
+selection,n_perturbations,selected_pairs,significant_perturbation_term_pairs,perturbations_with_go_hits
+local_gmm,213,70132,1655,89
+local_iv,213,82013,1621,92
+local_sv,213,18653,918,45
+wald_gmm,213,84363,1403,80
+wald_iv,213,99329,1576,91
+wald_sv,213,28582,886,51
+wilcoxon,213,209274,894,76

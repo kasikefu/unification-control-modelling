@@ -1,0 +1,9 @@
+inference,selection,n_selected,selected_and_wilcoxon,selected_not_wilcoxon,wilcoxon_only,neither
+Wald,IV,99329,97082,2247,112192,214479
+Wald,SV,28582,26237,2345,183037,214381
+Wald,Two-step GMM,84363,80259,4104,129015,212622
+Wald,All three,23175,22868,307,186406,216419
+Local robust,IV,82013,81038,975,128236,215751
+Local robust,SV,18653,17748,905,191526,215821
+Local robust,Two-step GMM,70132,68085,2047,141189,214679
+Local robust,All three,15552,15456,96,193818,216630

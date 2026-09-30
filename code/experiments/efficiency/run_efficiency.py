@@ -22,7 +22,7 @@ from ucm.weighting import oracle_projected_weight
 
 
 A_VALUES = (1.0, 2.0, 3.0)
-N_VALUES = tuple(range(200, 2001, 200))
+N_VALUES = (200, 600, 1000, 1400, 1800)
 DEFAULT_SEED = 20260919
 DEFAULT_N_JOBS = 8
 RAW_FIELDS = (
@@ -47,6 +47,15 @@ def estimate(data):
     beta_feasible, feasible_weight = efficient_gmm(
         x, y, z, w, h_iv, h_sv, return_weight=True
     )
+    # OLS with an intercept, deliberately omitting the observed confounder W.
+    x_centered = x - x.mean()
+    y_centered = y - y.mean()
+    ols_beta = float(x_centered @ y_centered / (x_centered @ x_centered))
+    ols_residual = y_centered - ols_beta * x_centered
+    ols_se = float(np.sqrt(np.sum((x_centered * ols_residual) ** 2)) / np.sum(x_centered**2))
+    ols_low, ols_high = wald_ci(ols_beta, ols_se)
+    _, ols_p = wald_test(ols_beta, 0.0, ols_se)
+    results = {"ols_unadjusted": (ols_beta, ols_se, float(ols_low), float(ols_high), float(ols_p))}
     weights = {
         "iv": (h_iv, iv_weight, beta_iv),
         "sv": (h_sv, sv_weight, beta_sv),
@@ -55,7 +64,6 @@ def estimate(data):
         "oracle_efficient": (h, oracle_projected_weight(data["a"]), None),
     }
 
-    results = {}
     for method, (instruments, weight, beta_hat) in weights.items():
         if beta_hat is None:
             beta_hat = combined(x, y, h_iv, h_sv, weight)
@@ -156,7 +164,7 @@ def run(replications=1000, seed=DEFAULT_SEED, n_jobs=DEFAULT_N_JOBS):
     summary["theoretical_asymptotic_variance"] = np.select(
         [summary["method"].eq("iv"), summary["method"].eq("sv"), summary["method"].eq("equal")],
         [4 / summary["a"] ** 2, 1.0, equal_variance],
-        default=4 / (summary["a"] ** 2 + 4),
+        default=np.where(summary["method"].eq("ols_unadjusted"), np.nan, 4 / (summary["a"] ** 2 + 4)),
     )
     summary["theoretical_finite_n_variance"] = (
         summary["theoretical_asymptotic_variance"] / summary["n"]
