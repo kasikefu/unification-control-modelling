@@ -124,8 +124,8 @@ from the repository root:
 python -m pip install -e '.[dev]'
 ```
 
-The core package depends on NumPy, SciPy, pandas, Matplotlib, and joblib. The
-Replogle application additionally requires `anndata` and `scikit-learn`.
+The core package depends on NumPy, SciPy, pandas, Matplotlib, Seaborn, and
+joblib. The Replogle application additionally requires `anndata` and `scikit-learn`.
 
 ## Running the code
 

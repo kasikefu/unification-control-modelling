@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from scipy.special import ndtr
 
 
@@ -28,12 +29,14 @@ FILE_LABELS = {
     "sv": "sv_deviates",
     "both": "both_deviate",
 }
+PALETTE = sns.color_palette("colorblind", 8)
+COLORS = dict(zip(METHODS, (PALETTE[i] for i in (7, 0, 1, 2, 4))))
 STYLES = {
-    "ols_unadjusted": dict(color="#3B3B3B", linestyle="-", marker="X"),
-    "iv": dict(color="#42677B", linestyle="-", marker="o"),
-    "sv": dict(color="#9A675B", linestyle="-", marker="s"),
-    "equal": dict(color="#68846B", linestyle="-", marker="^"),
-    "local_risk": dict(color="#706589", linestyle="-", marker="D"),
+    "ols_unadjusted": dict(color=COLORS["ols_unadjusted"], linestyle="-", marker="X"),
+    "iv": dict(color=COLORS["iv"], linestyle="-", marker="o"),
+    "sv": dict(color=COLORS["sv"], linestyle="-", marker="s"),
+    "equal": dict(color=COLORS["equal"], linestyle="-", marker="^"),
+    "local_risk": dict(color=COLORS["local_risk"], linestyle="-", marker="D"),
 }
 
 
