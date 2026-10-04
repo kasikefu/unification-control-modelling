@@ -1,168 +1,144 @@
 # Unification of Control Modelling
 
-This repository contains the code, simulations, and empirical analysis for the
-Unification of Control Modelling project. The project places instrumental
-variable (IV) moments and surrogate-control (SV) moments in a common projected
-GMM framework. It studies efficient combinations of the two information
-sources and risk-optimal combinations that remain reliable under local moment
-misspecification.
+IV and surrogate-control (SV) moments in one projected GMM framework:
+efficient weighting under correct specification, and risk-optimal weighting
+under local misspecification.
 
-## Repository structure
+**The experiment scripts fit models and write to `results/`.**
+**The notebooks read those results, summarize them, and write PDFs to `figures/`.**
+The notebooks do not read the raw H5AD inputs or rerun the model-fitting stages.
+Local-power calculations use the saved Monte Carlo estimates.
 
-```text
-unification-control-modelling/
-├── code/
-│   ├── ucm/                  # Reusable estimation and inference package
-│   ├── experiments/          # Simulations and empirical applications
-│   │   ├── efficiency/       # Projected-GMM efficiency experiment
-│   │   ├── local_misspec/    # Local-misspecification experiment
-│   │   └── replogle/         # Replogle CRISPR application and GO analysis
-│   ├── tests/                # Pytest test suite
-│   └── test_bug/             # Standalone diagnostic checks
-├── data/                     # Replogle inputs, GO files, and packaged outputs
-├── results/                  # Computed data, tables, and standalone-script outputs
-├── figures/                  # PDF exports from the three notebooks
-├── efficiency_results.ipynb
-├── local_misspec_results.ipynb
-├── realdata_batch_optimized.ipynb
-├── Unification_of_control_variable_modeling.pdf
-└── pyproject.toml
-```
-
-## Core package
-
-The `ucm` package under `code/ucm` contains the reusable statistical
-implementation.
-
-- `dgp.py` generates the IV/SV simulation design, including local deviations
-  from the two moment restrictions.
-- `projected.py` estimates the IV projection of the treatment and the
-  surrogate-control residual, and constructs the corresponding first-order
-  scores and covariance matrices.
-- `estimators.py` implements generic GMM, IV-only, SV-only, combined,
-  two-step efficient, and local-risk GMM estimators.
-- `weighting.py` provides equal, feasible efficient, and oracle weighting
-  matrices used in the simulations.
-- `risk.py` implements GMM sensitivities, asymptotic variance and local bias,
-  ellipsoidal worst-case risk, and risk-optimal sensitivities and weights.
-- `inference.py` provides GMM variance estimation, Wald inference, and
-  misspecification-robust confidence intervals.
-
-The main computational flow is:
+## Layout
 
 ```text
-Raw variables (X, Y, Z, W)
-          |
-          v
-Sample projections (h_iv, h_sv)
-          |
-          v
-Initial GMM estimate
-          |
-          v
-Projected scores and covariance
-          |
-          +----------------------+
-          |                      |
-          v                      v
- Efficient GMM weight     Local-risk-optimal weight
-          |                      |
-          +-----------+----------+
-                      v
-             Estimate and inference
+code/
+  ucm/                    shared estimation, projected scores, risk and inference
+  experiments/
+    efficiency/           correctly specified Monte Carlo experiment
+    local_misspec/        local deviations in IV, SV or both moment blocks
+    replogle/             K562 application and GO:BP enrichment
+  tests/                  automated tests
+  test_bug/               independent DGP and population-theory checks
+
+data/                     local H5AD inputs and GO annotation files
+results/                  generated tables, draws and auxiliary exports
+figures/                  PDF exports from the three notebooks
+
+efficiency_results.ipynb
+local_misspec_results.ipynb
+realdata_batch_optimized.ipynb
+Unification_of_control_variable_modeling.pdf
 ```
 
-Here, `h_iv` is the sample projection of `X` onto the instruments `Z`, while
-`h_sv` is the residual from projecting `X` onto controls `W`. Stacking these
-two projected moments produces the combined estimator.
+| Study | Manuscript | Notebook | Main figure |
+|---|---|---|---|
+| `efficiency` | Section 5.1 | `efficiency_results.ipynb` | `efficiency_mse_comparison.pdf` |
+| `local_misspec` | Section 5.2 | `local_misspec_results.ipynb` | `local_misspec_mse_comparison.pdf` |
+| `replogle` | Section 6 and Appendix F | `realdata_batch_optimized.ipynb` | `realdata_compact_summary.pdf` |
 
-## Experiments
+The efficiency figure uses `a=2`. The local-risk figure uses **both** moment
+blocks deviating, `D=diag(1,1)`, with 16 boundary directions. The scripts also
+compute supplementary designs; the notebooks select the manuscript panels.
 
-### Efficiency simulation
+See [the core package](code/ucm/README.md) for the statistical interfaces,
+[the experiment guide](code/experiments/README.md) for defaults and output
+files, and [the Replogle guide](code/experiments/replogle/README.md) for data
+selection and clustered inference.
 
-`code/experiments/efficiency/run_efficiency.py` runs the Monte Carlo experiment
-for the efficiency comparison. It compares unadjusted OLS, IV, SV, equally
-weighted combined GMM, feasible efficient GMM, and oracle efficient GMM across
-different sample sizes and identification strengths. Outputs are written to
-`results/efficiency`.
+## Setting up
 
-### Local misspecification
-
-`code/experiments/local_misspec/run_local_misspec.py` studies designs in which
-the IV restriction, the SV restriction, or both restrictions deviate locally
-from correct specification. It compares single-source estimators, equal-weight
-GMM, and the local-risk estimator in terms of bias, variance, worst-case risk,
-and confidence-interval coverage.
-
-The companion scripts
-`code/experiments/local_misspec/plot_statistica_sinica.py` and
-`code/experiments/local_misspec/summarize_appendix_f.py` generate figures and
-Appendix F summaries. Outputs are written to `results/local_misspec`.
-
-### Replogle CRISPR application
-
-`code/experiments/replogle/run_replogle.py` applies the IV/SV framework to
-batch-level pseudobulk expression from the Replogle K562 CRISPR screen. The
-pipeline:
-
-1. filters perturbations with sufficient observations;
-2. selects stable non-differentially expressed genes;
-3. constructs surrogate controls using principal components;
-4. fits IV, SV, and two-step GMM models for perturbation-outcome pairs; and
-5. reports conventional Wald and local-misspecification-robust inference.
-
-`code/experiments/replogle/run_go_analysis.py` performs GO Biological Process
-over-representation analysis using the tested outcome genes as the background.
-See `code/experiments/replogle/README.md` for application-specific commands and
-input details.
-
-## Installation
-
-Python 3.10 or later is required. Install the core package and test dependency
-from the repository root:
+Run commands from the repository root. The package declares Python 3.10 or
+later; install the core package and test dependency with:
 
 ```bash
 python -m pip install -e '.[dev]'
 ```
 
-The core package depends on NumPy, SciPy, pandas, Matplotlib, Seaborn, and
-joblib. The Replogle application additionally requires `anndata` and `scikit-learn`.
-
-## Running the code
-
-Run the test suite with:
+For the real-data application and notebook execution, also install:
 
 ```bash
-pytest code/tests
+python -m pip install anndata scikit-learn nbconvert ipykernel
 ```
 
-Run the two simulation entry points with:
+The last full rerun used Python 3.12.12, NumPy 2.3.5, SciPy 1.15.3,
+pandas 2.3.3, Matplotlib 3.10.7, Seaborn 0.13.2, joblib 1.5.2,
+anndata 0.12.6 and scikit-learn 1.7.2. Dependencies are not pinned in
+`pyproject.toml`; these are recorded versions, not an environment lockfile.
+
+## Running the analyses
 
 ```bash
 python code/experiments/efficiency/run_efficiency.py
 python code/experiments/local_misspec/run_local_misspec.py
-```
-
-Run the Replogle application and its subsequent GO analysis with:
-
-```bash
-python code/experiments/replogle/run_replogle.py
+OPENBLAS_NUM_THREADS=4 python code/experiments/replogle/run_replogle.py
 python code/experiments/replogle/run_go_analysis.py
 ```
 
-The simulation scripts expose command-line options for replication counts,
-random seeds, and parallel workers. Use `--help` on an entry point to inspect
-its available options.
+The two simulations use 1,000 replications and eight workers by default.
+Their `--help` options expose seeds and worker counts; the local simulation
+also exposes sample sizes and deviation radii. Inputs for Replogle must
+already be present in `data/`; see [the input inventory](data/README.md).
 
-## Data and generated results
+Then execute the notebooks in place:
 
-The `data` directory contains the Replogle pseudobulk inputs, differential
-expression results, and Gene Ontology annotation files used by the empirical
-pipeline. The `results` directory contains generated CSV files, compressed
-tables and standalone-script outputs for the simulations and empirical analysis.
-The three analysis notebooks export their figures as PDF files to
-`figures/`.
-Large files are managed with Git LFS where applicable.
+```bash
+python -m nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1 efficiency_results.ipynb
+python -m nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1 local_misspec_results.ipynb
+python -m nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1 realdata_batch_optimized.ipynb
+```
+
+These commands overwrite the corresponding results and notebook outputs.
+Reduced simulation runs use the same output directories, and the notebooks
+check the production grids and replication counts. Run the full defaults
+again before regenerating manuscript figures after a reduced run.
+
+## What is versioned
+
+The repository includes the manuscript, code, executed notebooks, PDF figures
+and compact result tables. Raw inputs and the large replication/model/GO
+comparison tables are excluded by [`.gitignore`](.gitignore). A fresh clone
+therefore needs the local inputs and the compute stages before every notebook
+can be executed. The input README is versioned; the datasets themselves are
+not supplied by the current tracked tree.
+
+Auxiliary figures from standalone scripts remain in `results/local_misspec/`.
+The manuscript figures come from `figures/`. The older 19-outcome Replogle
+results are not part of the current workflow.
+
+A rerun can change the last bits of floating-point summaries, depending on
+BLAS and package versions. PDF creation metadata and gzip timestamps can
+also change file hashes even when the reported numbers agree.
+
+## Checks
+
+```bash
+python -m pytest code/tests -q
+PYTHONPATH=code python code/test_bug/check_dgp.py
+PYTHONPATH=code python code/test_bug/check_local_risk_theory.py
+```
+
+The latest checks passed all 22 automated tests and all 40 population-theory
+comparisons. The theory diagnostic checks the paper's positive-definite weight
+family, including `KJ=1`, rather than comparing against the older rank-one
+weight alone. Its output is
+`results/theory_checks/local_risk_theory_check.csv`.
+
+## How long a rerun takes
+
+Measured on 2026-10-04, with eight workers per simulation and four BLAS
+threads for the Replogle model stage:
+
+| Stage | Time |
+|---|---|
+| Efficiency simulation | 25 s |
+| Local-misspecification simulation | 3 min 17 s |
+| Replogle model fitting, 426,000 pairs | 28 min 1 s |
+| GO:BP analysis | 2 min 31 s |
+| Efficiency / local / real-data notebooks | 4 s / 5 s / 1 min 39 s |
+
+The simulation and real-data stages were launched concurrently. These are
+per-stage measurements on that machine, not a summed wall-time guarantee.
 
 ## License
 
