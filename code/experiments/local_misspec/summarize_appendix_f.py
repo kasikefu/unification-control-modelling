@@ -67,8 +67,7 @@ def main():
         fig.tight_layout(rect=(0, 0, 1, 0.92))
         stem = result_dir / "appendix_f_risk_by_n"
         fig.savefig(stem.with_suffix(".pdf"), bbox_inches="tight")
-        fig.savefig(stem.with_suffix(".png"), dpi=300, bbox_inches="tight")
-        print(f"Saved line plot to {stem}.pdf/.png")
+        print(f"Saved line plot to {stem}.pdf")
         return
 
     rows = []
@@ -121,11 +120,10 @@ def main():
     fig.tight_layout()
     stem = result_dir / "appendix_f_risk_table"
     fig.savefig(stem.with_suffix(".pdf"), bbox_inches="tight")
-    fig.savefig(stem.with_suffix(".png"), dpi=300, bbox_inches="tight")
     print(
         "Results are stable across n "
         f"(max fitted relative change={stability['relative_fitted_change'].max():.3f}); "
-        f"saved table to {stem}.pdf/.png"
+        f"saved table to {stem}.pdf"
     )
 
 

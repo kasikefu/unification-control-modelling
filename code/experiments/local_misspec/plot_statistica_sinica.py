@@ -172,9 +172,8 @@ def make_figures(result_dir):
                             top=0.85, wspace=0.26)
         stem = result_dir / f"local_misspec_{FILE_LABELS[regime]}_combined"
         fig.savefig(stem.with_suffix(".pdf"), bbox_inches="tight")
-        fig.savefig(stem.with_suffix(".png"), dpi=300, bbox_inches="tight")
         plt.close(fig)
-        print(f"Saved {stem}.pdf/.png")
+        print(f"Saved {stem}.pdf")
     return min_power
 
 
