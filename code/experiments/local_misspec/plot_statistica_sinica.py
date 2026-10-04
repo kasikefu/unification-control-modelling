@@ -40,37 +40,6 @@ STYLES = {
 }
 
 
-def inference_summary(result_dir):
-    raw_columns = [
-        "regime", "kappa", "n", "tau_z", "tau_w", "method", "beta_hat", "sigma"
-    ]
-    raw = pd.read_csv(
-        result_dir / "local_misspec_replications.csv", usecols=raw_columns
-    )
-    raw = raw[(raw["kappa"] == 1.0) & raw["regime"].isin(REGIME_LABELS)].copy()
-
-    critical_value = 1.959963984540054
-    raw["null_z"] = np.sqrt(raw["n"]) * (raw["beta_hat"] - 1.0) / raw["sigma"]
-    raw["local_z_d2"] = raw["null_z"] + 2.0 / raw["sigma"]
-    raw["reject_null"] = raw["null_z"].abs() > critical_value
-    raw["reject_local_d2"] = raw["local_z_d2"].abs() > critical_value
-
-    boundary = raw.groupby(
-        ["regime", "kappa", "n", "tau_z", "tau_w", "method"], as_index=False
-    ).agg(
-        type_i_error=("reject_null", "mean"),
-        local_power_d2=("reject_local_d2", "mean"),
-    )
-    inference = boundary.groupby(
-        ["regime", "kappa", "n", "method"], as_index=False
-    ).agg(
-        worst_type_i_error=("type_i_error", "max"),
-        minimum_local_power_d2=("local_power_d2", "min"),
-    )
-    inference.to_csv(result_dir / "local_misspec_inference_summary.csv", index=False)
-    return inference
-
-
 def _style_axis(ax):
     ax.grid(False)
     ax.tick_params(direction="out", length=3.5, width=0.7, labelsize=8)

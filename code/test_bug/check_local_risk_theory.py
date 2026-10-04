@@ -1,4 +1,4 @@
-"""Compare hand-calculated local-risk optima with the numerical optimizer."""
+"""Check local-risk optima and positive-definite weights from Section 4.1."""
 
 import csv
 from pathlib import Path
@@ -12,12 +12,16 @@ from ucm.risk import ellipsoid_risk, optimal_ellipsoid_weight, sensitivity
 
 
 TOLERANCE = 1e-12
+RHO = 1.0
 
 
 def check_local_risk_theory():
     """Check simple population optima for the a=2, kappa=1 design."""
     jacobian = np.array([[2.0], [1.0]])
     covariance = np.diag([4.0, 1.0])
+    # N_J=(1,-2)'/sqrt(5) spans C(J)^perp. The paper's weight family
+    # K' A K + N_J B N_J' gives this implementation for A=1 and B=rho.
+    orthogonal_projector = np.array([[1.0, -2.0], [-2.0, 4.0]]) / 5
 
     # Write K=(k, 1-2k), using the restriction KJ=1.
     # Each case below follows by minimizing its one-variable quadratic risk.
@@ -67,9 +71,11 @@ def check_local_risk_theory():
     for case, expected in cases.items():
         radii = expected["radii"]
         hand_k = expected["sensitivity"]
-        hand_weight = np.outer(hand_k, hand_k)
+        hand_weight = np.outer(hand_k, hand_k) + RHO * orthogonal_projector
 
-        algorithm_weight = optimal_ellipsoid_weight(jacobian, covariance, radii)
+        algorithm_weight = optimal_ellipsoid_weight(
+            jacobian, covariance, radii, rho=RHO
+        )
         algorithm_k = sensitivity(jacobian, algorithm_weight).reshape(-1)
         algorithm_risk = ellipsoid_risk(
             jacobian, algorithm_weight, covariance, radii
@@ -80,6 +86,11 @@ def check_local_risk_theory():
         record(case, formula, "K_sv", hand_k[1], algorithm_k[1])
         record(case, formula, "IV_information_share", 2 * hand_k[0], 2 * algorithm_k[0])
         record(case, formula, "optimal_risk", expected["risk"], algorithm_risk)
+        record(case, formula, "KJ", 1.0, algorithm_k @ jacobian[:, 0])
+        record(
+            case, formula, "M_positive_definite", True,
+            np.linalg.eigvalsh(algorithm_weight).min() > 0,
+        )
         for row in range(2):
             for column in range(2):
                 record(
@@ -99,7 +110,7 @@ def check_local_risk_theory():
         writer.writeheader()
         writer.writerows(rows)
 
-    print("All hand calculations agree with the local-risk optimizer.")
+    print("All hand calculations agree with the positive-definite local-risk weights.")
     for case, expected in cases.items():
         case_rows = {row["quantity"]: row for row in rows if row["case"] == case}
         print(

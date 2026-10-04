@@ -1,0 +1,41 @@
+case,risk_formula,quantity,hand_calculation,algorithm,absolute_error,passed
+correct_specification,4*k^2 + (1-2*k)^2,K_iv,0.25,0.24999999999999994,5.551115123125783e-17,True
+correct_specification,4*k^2 + (1-2*k)^2,K_sv,0.5,0.5000000000000001,1.1102230246251565e-16,True
+correct_specification,4*k^2 + (1-2*k)^2,IV_information_share,0.5,0.4999999999999999,1.1102230246251565e-16,True
+correct_specification,4*k^2 + (1-2*k)^2,optimal_risk,0.5,0.5,0.0,True
+correct_specification,4*k^2 + (1-2*k)^2,KJ,1.0,1.0,0.0,True
+correct_specification,4*k^2 + (1-2*k)^2,M_positive_definite,1.0,1.0,0.0,True
+correct_specification,4*k^2 + (1-2*k)^2,M_11,0.2625,0.26249999999999996,5.551115123125783e-17,True
+correct_specification,4*k^2 + (1-2*k)^2,M_12,-0.275,-0.275,0.0,True
+correct_specification,4*k^2 + (1-2*k)^2,M_21,-0.275,-0.275,0.0,True
+correct_specification,4*k^2 + (1-2*k)^2,M_22,1.05,1.05,0.0,True
+iv_may_deviate,k^2 + 4*k^2 + (1-2*k)^2,K_iv,0.2222222222222222,0.22222222222222215,5.551115123125783e-17,True
+iv_may_deviate,k^2 + 4*k^2 + (1-2*k)^2,K_sv,0.5555555555555556,0.5555555555555557,1.1102230246251565e-16,True
+iv_may_deviate,k^2 + 4*k^2 + (1-2*k)^2,IV_information_share,0.4444444444444444,0.4444444444444443,1.1102230246251565e-16,True
+iv_may_deviate,k^2 + 4*k^2 + (1-2*k)^2,optimal_risk,0.5555555555555556,0.5555555555555556,0.0,True
+iv_may_deviate,k^2 + 4*k^2 + (1-2*k)^2,KJ,1.0,1.0,0.0,True
+iv_may_deviate,k^2 + 4*k^2 + (1-2*k)^2,M_positive_definite,1.0,1.0,0.0,True
+iv_may_deviate,k^2 + 4*k^2 + (1-2*k)^2,M_11,0.24938271604938272,0.24938271604938267,5.551115123125783e-17,True
+iv_may_deviate,k^2 + 4*k^2 + (1-2*k)^2,M_12,-0.27654320987654324,-0.27654320987654324,0.0,True
+iv_may_deviate,k^2 + 4*k^2 + (1-2*k)^2,M_21,-0.27654320987654324,-0.27654320987654324,0.0,True
+iv_may_deviate,k^2 + 4*k^2 + (1-2*k)^2,M_22,1.108641975308642,1.108641975308642,0.0,True
+sv_may_deviate,4*k^2 + 2*(1-2*k)^2,K_iv,0.3333333333333333,0.33333333333333326,5.551115123125783e-17,True
+sv_may_deviate,4*k^2 + 2*(1-2*k)^2,K_sv,0.3333333333333333,0.3333333333333334,1.1102230246251565e-16,True
+sv_may_deviate,4*k^2 + 2*(1-2*k)^2,IV_information_share,0.6666666666666666,0.6666666666666665,1.1102230246251565e-16,True
+sv_may_deviate,4*k^2 + 2*(1-2*k)^2,optimal_risk,0.6666666666666666,0.6666666666666666,0.0,True
+sv_may_deviate,4*k^2 + 2*(1-2*k)^2,KJ,1.0,1.0,0.0,True
+sv_may_deviate,4*k^2 + 2*(1-2*k)^2,M_positive_definite,1.0,1.0,0.0,True
+sv_may_deviate,4*k^2 + 2*(1-2*k)^2,M_11,0.3111111111111111,0.31111111111111106,5.551115123125783e-17,True
+sv_may_deviate,4*k^2 + 2*(1-2*k)^2,M_12,-0.2888888888888889,-0.2888888888888889,0.0,True
+sv_may_deviate,4*k^2 + 2*(1-2*k)^2,M_21,-0.2888888888888889,-0.2888888888888889,0.0,True
+sv_may_deviate,4*k^2 + 2*(1-2*k)^2,M_22,0.9111111111111112,0.9111111111111112,0.0,True
+both_may_deviate,k^2 + (1-2*k)^2 + 4*k^2 + (1-2*k)^2,K_iv,0.3076923076923077,0.3076923076923077,0.0,True
+both_may_deviate,k^2 + (1-2*k)^2 + 4*k^2 + (1-2*k)^2,K_sv,0.38461538461538464,0.3846153846153847,5.551115123125783e-17,True
+both_may_deviate,k^2 + (1-2*k)^2 + 4*k^2 + (1-2*k)^2,IV_information_share,0.6153846153846154,0.6153846153846154,0.0,True
+both_may_deviate,k^2 + (1-2*k)^2 + 4*k^2 + (1-2*k)^2,optimal_risk,0.7692307692307693,0.7692307692307695,2.220446049250313e-16,True
+both_may_deviate,k^2 + (1-2*k)^2 + 4*k^2 + (1-2*k)^2,KJ,1.0,1.0,0.0,True
+both_may_deviate,k^2 + (1-2*k)^2 + 4*k^2 + (1-2*k)^2,M_positive_definite,1.0,1.0,0.0,True
+both_may_deviate,k^2 + (1-2*k)^2 + 4*k^2 + (1-2*k)^2,M_11,0.29467455621301775,0.29467455621301775,0.0,True
+both_may_deviate,k^2 + (1-2*k)^2 + 4*k^2 + (1-2*k)^2,M_12,-0.28165680473372784,-0.28165680473372784,0.0,True
+both_may_deviate,k^2 + (1-2*k)^2 + 4*k^2 + (1-2*k)^2,M_21,-0.28165680473372784,-0.28165680473372784,0.0,True
+both_may_deviate,k^2 + (1-2*k)^2 + 4*k^2 + (1-2*k)^2,M_22,0.9479289940828403,0.9479289940828403,0.0,True
