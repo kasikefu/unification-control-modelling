@@ -20,7 +20,8 @@ unification-control-modelling/
 │   ├── tests/                # Pytest test suite
 │   └── test_bug/             # Standalone diagnostic checks
 ├── data/                     # Replogle inputs, GO files, and packaged outputs
-├── results/                  # Generated tables and figures
+├── results/                  # Computed data, tables, and standalone-script outputs
+├── figures/                  # PDF and PNG exports from the three notebooks
 ├── efficiency_results.ipynb
 ├── local_misspec_results.ipynb
 ├── realdata_batch_optimized.ipynb
@@ -158,7 +159,9 @@ its available options.
 The `data` directory contains the Replogle pseudobulk inputs, differential
 expression results, and Gene Ontology annotation files used by the empirical
 pipeline. The `results` directory contains generated CSV files, compressed
-tables, figures, and PDF outputs for the simulations and empirical analysis.
+tables and standalone-script outputs for the simulations and empirical analysis.
+The three analysis notebooks export their figures as PDF and PNG files to
+`figures/`.
 Large files are managed with Git LFS where applicable.
 
 ## License
