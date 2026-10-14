@@ -12,6 +12,7 @@ dependencies = [
     "scipy",
     "pandas",
     "matplotlib",
+    "matplotlib-venn[shapely]>=1.1",
     "seaborn",
     "joblib",
 ]

@@ -1,0 +1,15 @@
+inference,region,count
+Non-robust,100,24847
+Non-robust,010,1115
+Non-robust,001,5685
+Non-robust,110,48
+Non-robust,101,51259
+Non-robust,011,4244
+Non-robust,111,23175
+Robust,100,20124
+Robust,010,521
+Robust,001,5697
+Robust,110,17
+Robust,101,46320
+Robust,011,2563
+Robust,111,15552

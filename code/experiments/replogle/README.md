@@ -136,6 +136,34 @@ and four diagnostic PDFs: PCA scree, PC1/PC2 scores, coefficient histograms
 and rank correlations. It also exports Wald/local discovery and Wilcoxon
 agreement summaries to `results/replogle/`.
 
+The manuscript figure labels the two inference rules as **Non-robust**
+and **Robust**. It displays significant hypothesis tests, rather than
+confidence intervals. Panels (a)–(b) are UpSet plots of the seven exclusive
+discovery intersections, with the same column order and linear count scale.
+Filled dots identify included methods and pale dots identify excluded
+methods. Each observation is a perturbation–outcome gene pair, aggregated
+over 213 perturbations and 2,000 outcomes. Thus an outcome discovered for
+different perturbations is counted separately. The IV/SV intersection
+excluding GMM has 48 non-robust and 17 robust discoveries; both counts are
+labeled directly above their columns without separate explanation boxes.
+The UpSet plots share the top row with discovery counts in panel (c),
+and the GO comparison spans the lower row. The figure has no overall
+title, long explanatory notes, or footer; statistical definitions and
+the selection of GO terms are documented in
+`figures/realdata_compact_summary_caption.md`.
+
+The Matplotlib renderer `plot_discovery_upset.py` is shared with the notebook.
+It can render this figure independently of the other notebook diagnostics:
+
+```bash
+MPLBACKEND=Agg python code/experiments/replogle/plot_discovery_upset.py
+```
+
+It also exports the separate two-panel preview
+`figures/realdata_upset_comparison.pdf` and PNG previews of both figures.
+`results/replogle/upset_intersection_counts.csv` records all 14 exact counts.
+The earlier `venn_area_diagnostics.csv` documents the superseded Venn layout.
+
 Current reference counts are 84,363 Wald GMM discoveries, 70,132 local GMM
 discoveries and 209,274 matched Wilcoxon discoveries. GMM and Wilcoxon test
 different statistical targets; the agreement comparison is not a validation
