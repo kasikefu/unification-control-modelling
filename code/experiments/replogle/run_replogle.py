@@ -40,7 +40,10 @@ PSEUDOBULK_PATH = INPUT_DIR / 'Replogle-E-k562_mean_log1p_by_batch.h5ad'
 DE_PATH = INPUT_DIR / 'Replogle-E-k562_wilcoxon_batch_stratified.h5ad'
 for input_path in (PSEUDOBULK_PATH, DE_PATH):
     if not input_path.is_file():
-        raise FileNotFoundError(f'Missing input: {input_path}. Run the notebook from the project directory.')
+        raise FileNotFoundError(
+            f'Missing input: {input_path}. Prepare the precomputed H5AD inputs '
+            'described in data/README.md, then rerun this script.'
+        )
 OUTPUT_DIR = PROJECT_ROOT / 'results' / 'replogle'
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 

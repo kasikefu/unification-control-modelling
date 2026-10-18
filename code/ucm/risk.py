@@ -10,7 +10,7 @@ def sensitivity(J, M):
 
 
 def weight_from_sensitivity(J, K, rho=1.0):
-    """Appendix-F positive-definite weight inducing a sensitivity K.
+    """Section-4.2 positive-definite weight inducing a sensitivity K.
 
     Requires ``K @ J = I`` and returns ``K.T @ K + rho * P_{C(J)^perp}``.
     """
@@ -47,7 +47,7 @@ def amse(K, Omega, tau):
 
 
 def _bias_shape(radii, moment_count):
-    """Convert Appendix-F radii or a supplied D matrix to a shape matrix."""
+    """Convert Section-4.1 radii or a supplied D matrix to a shape matrix."""
     radii = np.asarray(radii, dtype=float)
     if radii.ndim == 1:
         if radii.size != moment_count:
@@ -83,7 +83,7 @@ def ellipsoid_bias_bound(K, radii, contrast=None):
 
 
 def ellipsoid_risk_from_sensitivity(K, Omega, radii):
-    """Appendix-F worst-case AMSE: ||K D||_op^2 + tr(K Omega K')."""
+    """Section-4.1 worst-case AMSE: ||K D||_op^2 + tr(K Omega K')."""
     K = np.atleast_2d(np.asarray(K, dtype=float))
     Omega = np.asarray(Omega, dtype=float)
     if Omega.shape != (K.shape[1], K.shape[1]):
@@ -100,7 +100,7 @@ def ellipsoid_risk(J, M, Omega, radii):
 
 
 def optimal_ellipsoid_sensitivity(J, Omega, radii):
-    """Solve the Appendix-F K problem subject to K J = I.
+    """Solve the Section-4.2 K problem subject to K J = I.
 
     The scalar-parameter case has a closed form. For a vector parameter,
     the convex operator-norm problem is solved directly with SLSQP.
@@ -154,6 +154,6 @@ def optimal_ellipsoid_sensitivity(J, Omega, radii):
 
 
 def optimal_ellipsoid_weight(J, Omega, radii, rho=1.0):
-    """Return the Appendix-F positive-definite weight inducing K_opt."""
+    """Return the Section-4.2 positive-definite weight inducing K_opt."""
     K = optimal_ellipsoid_sensitivity(J, Omega, radii)
     return weight_from_sensitivity(J, K, rho)

@@ -55,7 +55,7 @@ def robust_critical_value(t, alpha=0.05):
 
 
 def robust_ci(beta_hat, sigma, bias_bound, n, alpha=0.05):
-    """Misspecification-robust CI from Remark 9."""
+    """Misspecification-robust CI from Remark 3."""
     beta_hat = float(beta_hat)
     sigma = float(sigma)
     bias_bound = float(bias_bound)
@@ -74,7 +74,7 @@ def robust_ci(beta_hat, sigma, bias_bound, n, alpha=0.05):
 
 def robust_gmm_ci(X, y, Z, W, beta_hat, M, radii, h_iv=None, h_sv=None,
                   contrast=None, alpha=0.05, return_details=False):
-    """Robust CI for a scalar contrast of a combined estimator (Remark 9)."""
+    """Robust CI for a scalar contrast of a combined estimator (Remark 3)."""
     if h_iv is None or h_sv is None:
         h_iv, h_sv = sample_projections(X, Z, W)
     H = np.column_stack((h_iv, h_sv))

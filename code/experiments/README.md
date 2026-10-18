@@ -89,10 +89,10 @@ OLS-Wald/other-methods-robust convention.
 `summarize_appendix_f.py` produces `appendix_f_n_stability.csv` and either
 an across-n risk plot or a compact risk table. Its filename refers to an
 older manuscript layout; these are supplementary simulation diagnostics.
-**Appendix F in the current manuscript describes real-data preparation.**
+**Appendix E in the current manuscript describes real-data preparation.**
 The manuscript's local-risk figure is the notebook export in `figures/`.
 
-## Replogle: Section 6 and Appendix F
+## Replogle: Section 6 and Appendix E
 
 ```bash
 OPENBLAS_NUM_THREADS=4 python code/experiments/replogle/run_replogle.py

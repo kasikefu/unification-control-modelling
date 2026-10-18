@@ -13,7 +13,7 @@ def sample_projections(X, Z, W):
 
 
 def projected_scores(X, y, Z, W, beta_hat, h_iv=None, h_sv=None):
-    """Plug-in first-order scores from Appendix F."""
+    """Plug-in first-order scores from Section 4.3."""
     X = np.asarray(X).reshape(len(y), -1)
     Z = np.asarray(Z).reshape(len(y), -1)
     W = np.asarray(W).reshape(len(y), -1)

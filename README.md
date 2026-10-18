@@ -1,5 +1,9 @@
 # Unification of Control Modelling
 
+Code for the manuscript **Duality in Deconfounding with Instruments and
+Surrogate Controls**. The manuscript PDF is maintained locally and is not
+distributed in this repository.
+
 IV and surrogate-control (SV) moments in one projected GMM framework:
 efficient weighting under correct specification, and risk-optimal weighting
 under local misspecification.
@@ -28,14 +32,13 @@ figures/                  PDF exports from the three notebooks
 efficiency_results.ipynb
 local_misspec_results.ipynb
 realdata_batch_optimized.ipynb
-Unification_of_control_variable_modeling.pdf
 ```
 
 | Study | Manuscript | Notebook | Main figure |
 |---|---|---|---|
 | `efficiency` | Section 5.1 | `efficiency_results.ipynb` | `efficiency_mse_comparison.pdf` |
 | `local_misspec` | Section 5.2 | `local_misspec_results.ipynb` | `local_misspec_mse_comparison.pdf` |
-| `replogle` | Section 6 and Appendix F | `realdata_batch_optimized.ipynb` | `realdata_compact_summary.pdf` |
+| `replogle` | Section 6 and Appendix E | `realdata_batch_optimized.ipynb` | `realdata_compact_summary.pdf` |
 
 The efficiency figure uses `a=2`. The local-risk figure uses **both** moment
 blocks deviating, `D=diag(1,1)`, with 16 boundary directions. The scripts also
@@ -95,7 +98,7 @@ again before regenerating manuscript figures after a reduced run.
 
 ## What is versioned
 
-The repository includes the manuscript, code, executed notebooks, PDF figures
+The repository includes code, executed notebooks, PDF figures
 and compact result tables. Raw inputs and the large replication/model/GO
 comparison tables are excluded by [`.gitignore`](.gitignore). A fresh clone
 therefore needs the local inputs and the compute stages before every notebook

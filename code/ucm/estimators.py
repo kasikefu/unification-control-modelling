@@ -55,7 +55,7 @@ def local_risk_gmm(
     X, y, Z, W, radii, h_iv=None, h_sv=None, return_weight=False,
     return_sensitivity=False, rho=1.0,
 ):
-    """Feasible risk-optimal projected GMM from Appendix F."""
+    """Feasible risk-optimal projected GMM from Section 4.3."""
     if h_iv is None or h_sv is None:
         h_iv, h_sv = sample_projections(X, Z, W)
     H = np.column_stack((h_iv, h_sv))

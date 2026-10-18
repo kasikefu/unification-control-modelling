@@ -57,7 +57,8 @@ For stacked moments, `G = H.T @ X / n` is the sample Jacobian and
   `||K D||_op^2 + tr(K Omega K.T)` subject to `K G = I`.
 - `weight_from_sensitivity` constructs
   `M = K.T @ K + rho * P_{C(G)^perp}`, with `rho > 0`. This is a
-  positive-definite member of the weight family in manuscript Section 4.1.
+  positive-definite member of the weight family in manuscript Section 4.2;
+  the feasible construction is described in Section 4.3.
   Different members can induce the same sensitivity and risk.
 
 `radii` can be a nonnegative vector, interpreted as `diag(radii)`, or a

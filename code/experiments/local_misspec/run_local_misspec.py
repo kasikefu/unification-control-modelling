@@ -45,7 +45,7 @@ TOTAL_FIELDS = (
 
 
 def design_points(kappas):
-    """Return Appendix-F ellipsoids and boundary evaluation points."""
+    """Return Section-4.1 ellipsoids and boundary evaluation points."""
     for kappa in kappas:
         if kappa == 0:
             yield "none", kappa, (0.0, 0.0), ((0.0, 0.0),)

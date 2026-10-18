@@ -13,7 +13,7 @@ METHOD_LABELS = {
     "iv": "IV only",
     "sv": "SV only",
     "equal": "Equal GMM",
-    "local_risk": "Appendix-F optimal",
+    "local_risk": "Local-AMSE GMM",
 }
 REGIME_LABELS = {
     "none": "Exact",

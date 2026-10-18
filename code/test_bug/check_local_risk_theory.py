@@ -1,4 +1,4 @@
-"""Check local-risk optima and positive-definite weights from Section 4.1."""
+"""Check local-risk optima and positive-definite weights from Section 4.2."""
 
 import csv
 from pathlib import Path

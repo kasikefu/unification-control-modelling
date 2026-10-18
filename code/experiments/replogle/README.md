@@ -23,7 +23,7 @@ The model stage requires two local files:
 The gene axes must match. Inputs are not downloaded by the model runner.
 The supplied pseudobulk averages log1p expression from five cells sampled
 with replacement within retained groups; its upstream construction is
-described in manuscript Appendix F. This repository starts from that
+described in manuscript Appendix E. This repository starts from that
 precomputed matrix. See [the input inventory](../../../data/README.md).
 
 ## 1. Fit the models
@@ -110,7 +110,7 @@ go-basic.obo          b08d45b268b8c24ccb2513dbbbc7d4df9f6521c099b413f79eb31e06e0
 
 The GAF generation date is 2026-07-28; its GO version is 2026-07-26.
 `go_bp_manifest.json` records the annotation headers, checksums and settings
-for each run. Appendix F describes the testing background and multiple-testing procedure.
+for each run. Appendix E describes the testing background and multiple-testing procedure.
 
 GO uses the 2,000 tested outcomes as the background. Human biological-process
 annotations exclude `NOT` and propagate through `is_a` and `part_of`.

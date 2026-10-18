@@ -15,7 +15,7 @@ A fresh clone does not obtain these datasets through `git lfs pull`.
 The pseudobulk matrix contains 22,075 profiles and 8,563 genes. The model
 runner selects 8,413 profiles from 213 perturbations and controls. It consumes
 the existing pseudobulk file; upstream single-cell aggregation is not
-implemented here. Manuscript Appendix F describes the supplied preprocessing.
+implemented here. Manuscript Appendix E describes the supplied preprocessing.
 
 See [the Replogle workflow](../code/experiments/replogle/README.md) for setup,
 GO download commands, annotation checksums and run order. Generated model,

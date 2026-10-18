@@ -4,6 +4,9 @@ __pycache__/
 *.egg-info/
 .ipynb_checkpoints/
 
+# Keep the manuscript PDF local rather than publishing it with the code.
+/Unification_of_control_variable_modeling.pdf
+
 # Large local datasets and replication-level simulation output.
 data/
 results/efficiency/efficiency_replications.csv
