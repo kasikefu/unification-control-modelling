@@ -1,12 +1,12 @@
-# A Unified Framework for Deconfounding with Instrumental and Surrogate Variables
+# Unifying Instrumental and Surrogate Control Variables for Deconfounding
 
-Code for the manuscript **A Unified Framework for Deconfounding with
-Instrumental and Surrogate Variables**. The manuscript PDF is maintained
+Code for the manuscript **Unifying Instrumental and Surrogate Control Variables
+for Deconfounding**. The manuscript PDF is maintained
 locally and is not distributed in this repository.
 
-IV and surrogate-control (SV) moments in one projected GMM framework:
-efficient weighting under correct specification, and risk-optimal weighting
-under local misspecification.
+Moments from instrumental variables (IV) and surrogate control variables (SV)
+in one projected GMM framework: efficient weighting under correct specification,
+and risk-optimal weighting under local misspecification.
 
 **The experiment scripts fit models and write to `results/`.**
 **The notebooks read those results, summarize them, and write PDFs to `figures/`.**
