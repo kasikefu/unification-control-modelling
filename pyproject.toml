@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ucm"
 version = "0.1.0"
-description = "Unified control modelling with IV and surrogate-control moments"
+description = "A unified framework for deconfounding with instrumental and surrogate variables"
 requires-python = ">=3.10"
 dependencies = [
     "numpy",

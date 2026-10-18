@@ -1,6 +1,7 @@
-# `ucm`: projected IV/SV estimation
+# `ucm`: unified deconfounding with IV and SV
 
-The statistical implementation shared by the two Monte Carlo studies.
+Core estimation package for **A Unified Framework for Deconfounding with
+Instrumental and Surrogate Variables**, shared by the two Monte Carlo studies.
 Start with `estimators.py`; projection scores, risk geometry and inference
 live in separate modules so their roles are visible.
 

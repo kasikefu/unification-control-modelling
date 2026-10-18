@@ -1,8 +1,8 @@
-# Unification of Control Modelling
+# A Unified Framework for Deconfounding with Instrumental and Surrogate Variables
 
-Code for the manuscript **Duality in Deconfounding with Instruments and
-Surrogate Controls**. The manuscript PDF is maintained locally and is not
-distributed in this repository.
+Code for the manuscript **A Unified Framework for Deconfounding with
+Instrumental and Surrogate Variables**. The manuscript PDF is maintained
+locally and is not distributed in this repository.
 
 IV and surrogate-control (SV) moments in one projected GMM framework:
 efficient weighting under correct specification, and risk-optimal weighting
