@@ -159,8 +159,8 @@ It can render this figure independently of the other notebook diagnostics:
 MPLBACKEND=Agg python code/experiments/replogle/plot_discovery_upset.py
 ```
 
-It also exports the separate two-panel preview
-`figures/realdata_upset_comparison.pdf` and PNG previews of both figures.
+It also exports the separate two-panel comparison
+`figures/realdata_upset_comparison.pdf`. All figure exports use PDF only.
 `results/replogle/upset_intersection_counts.csv` records all 14 exact counts.
 The earlier `venn_area_diagnostics.csv` documents the superseded Venn layout.
 

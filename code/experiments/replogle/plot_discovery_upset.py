@@ -178,9 +178,8 @@ def main():
     comparison = draw_comparison(counts)
     for fig, stem in ((summary, "realdata_compact_summary"),
                       (comparison, "realdata_upset_comparison")):
-        for extension in ("pdf", "png"):
-            fig.savefig(figures / f"{stem}.{extension}", dpi=180,
-                        bbox_inches="tight", pad_inches=.15, facecolor="white")
+        fig.savefig(figures / f"{stem}.pdf", dpi=180,
+                    bbox_inches="tight", pad_inches=.15, facecolor="white")
         plt.close(fig)
     pd.DataFrame([{"inference": mode, "region": "".join(map(str, region)), "count": value}
                   for mode, regions in counts.items() for region, value in regions.items()]).to_csv(
